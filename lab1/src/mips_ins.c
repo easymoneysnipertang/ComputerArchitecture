@@ -180,21 +180,21 @@ void bltz(uint8_t rs, int16_t offset){
     // 当rs<0时跳转
     if((int32_t)CURRENT_STATE.REGS[rs] < 0)
         // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + offset * 4 - 4;
+        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
 }
 
 void bgez(uint8_t rs, int16_t offset){
     // 当rs>=0时跳转
     if((int32_t)CURRENT_STATE.REGS[rs] >= 0)
         // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + offset * 4 - 4;
+        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
 }
 
 void bltzal(uint8_t rs, int16_t offset){
     // 当rs<0时跳转，同时将PC+4写入$31
     if((int32_t)CURRENT_STATE.REGS[rs] < 0){
         // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + offset * 4 - 4;
+        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
         NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
     }
 }
@@ -203,7 +203,7 @@ void bgezal(uint8_t rs, int16_t offset){
     // 当rs>=0时跳转，同时将PC+4写入$31
     if((int32_t)CURRENT_STATE.REGS[rs] >= 0){
         // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + offset * 4 - 4;
+        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
         NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
     }
 }
@@ -212,28 +212,28 @@ void beq(uint8_t rs, uint8_t rt, int16_t offset){
     // 当rs=rt时跳转
     if(CURRENT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt])
         // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + offset * 4 - 4;
+        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
 }
 
 void bne(uint8_t rs, uint8_t rt, int16_t offset){
     // 当rs!=rt时跳转
     if(CURRENT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt])
         // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + offset * 4 - 4;
+        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
 }
 
 void blez(uint8_t rs, int16_t offset){
     // 当rs<=0时跳转
     if((int32_t)CURRENT_STATE.REGS[rs] <= 0)
         // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + offset * 4 - 4;
+        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
 }
 
 void bgtz(uint8_t rs, int16_t offset){
     // 当rs>0时跳转
     if((int32_t)CURRENT_STATE.REGS[rs] > 0)
         // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + offset * 4 - 4;
+        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
 }
 
 void addi(uint8_t rs, uint8_t rt, int16_t imm){
