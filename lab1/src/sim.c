@@ -10,6 +10,9 @@ void process_instruction()
      * access memory. */
     // 获取当前指令
     uint32_t instruction = mem_read_32(CURRENT_STATE.PC);
+
+    // 取指后就更新PC
+    NEXT_STATE.PC += 4;
     
     // 解析指令
     // 1. 获取指令的opcode
@@ -40,7 +43,4 @@ void process_instruction()
         j_ins(opcode, address);
     else
         i_ins(opcode, rs, rt, immediate);
-    
-    // 处理完指令后，PC加4
-    NEXT_STATE.PC += 4;
 }

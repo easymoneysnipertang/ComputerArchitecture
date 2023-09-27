@@ -51,15 +51,15 @@ void srav(uint8_t rs, uint8_t rt, uint8_t rd){
 
 void jr(uint8_t rs){
     // 无条件跳转，跳转地址由rs给出
-    NEXT_STATE.PC = CURRENT_STATE.REGS[rs] - 4;  // 在process_instruction()中会+4
+    NEXT_STATE.PC = CURRENT_STATE.REGS[rs];
 }
 
 void jalr(uint8_t rs, uint8_t rd){
     // 无条件跳转，跳转地址由rs给出，同时将PC+4写入rd
     // 如果没有在指令中指明rd，那么默认将返回地址保存到寄存器$31
     uint8_t d = rd == 0? 31: rd;
-    NEXT_STATE.PC = CURRENT_STATE.REGS[rs] - 4;  // 在process_instruction()中会+4
-    NEXT_STATE.REGS[d] = CURRENT_STATE.PC + 4;
+    NEXT_STATE.PC = CURRENT_STATE.REGS[rs];
+    NEXT_STATE.REGS[d] = CURRENT_STATE.PC + 4;  // TODO: check
 }
 
 void mfhi(uint8_t rd){
@@ -179,61 +179,61 @@ void sltu(uint8_t rs, uint8_t rt, uint8_t rd){
 void bltz(uint8_t rs, int16_t offset){
     // 当rs<0时跳转
     if((int32_t)CURRENT_STATE.REGS[rs] < 0)
-        // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
+        // 字节寻址，左移2位；在PC+4基础上偏移
+        NEXT_STATE.PC = NEXT_STATE.PC + (offset << 2);
 }
 
 void bgez(uint8_t rs, int16_t offset){
     // 当rs>=0时跳转
     if((int32_t)CURRENT_STATE.REGS[rs] >= 0)
-        // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
+        // 字节寻址，左移2位；在PC+4基础上偏移
+        NEXT_STATE.PC = NEXT_STATE.PC + (offset << 2);
 }
 
 void bltzal(uint8_t rs, int16_t offset){
     // 当rs<0时跳转，同时将PC+4写入$31
     if((int32_t)CURRENT_STATE.REGS[rs] < 0){
-        // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
-        NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+        // 字节寻址，左移2位；在PC+4基础上偏移
+        NEXT_STATE.PC = NEXT_STATE.PC + (offset << 2);
+        NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4; // TODO: check
     }
 }
 
 void bgezal(uint8_t rs, int16_t offset){
     // 当rs>=0时跳转，同时将PC+4写入$31
     if((int32_t)CURRENT_STATE.REGS[rs] >= 0){
-        // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
-        NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+        // 字节寻址，左移2位；在PC+4基础上偏移
+        NEXT_STATE.PC = NEXT_STATE.PC + (offset << 2);
+        NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4; // TODO: check
     }
 }
 
 void beq(uint8_t rs, uint8_t rt, int16_t offset){
     // 当rs=rt时跳转
     if(CURRENT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt])
-        // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
+        // 字节寻址，左移2位；在PC+4基础上偏移
+        NEXT_STATE.PC = NEXT_STATE.PC + (offset << 2) ;
 }
 
 void bne(uint8_t rs, uint8_t rt, int16_t offset){
     // 当rs!=rt时跳转
     if(CURRENT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt])
-        // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
+        // 字节寻址，左移2位；在PC+4基础上偏移
+        NEXT_STATE.PC = NEXT_STATE.PC + (offset << 2);
 }
 
 void blez(uint8_t rs, int16_t offset){
     // 当rs<=0时跳转
     if((int32_t)CURRENT_STATE.REGS[rs] <= 0)
-        // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
+        // 字节寻址，左移2位；在PC+4基础上偏移
+        NEXT_STATE.PC = NEXT_STATE.PC + (offset << 2);
 }
 
 void bgtz(uint8_t rs, int16_t offset){
     // 当rs>0时跳转
     if((int32_t)CURRENT_STATE.REGS[rs] > 0)
-        // 在process_instruction()中会+4；字节寻址，左移2位
-        NEXT_STATE.PC = CURRENT_STATE.PC + (offset << 2) - 4;
+        // 字节寻址，左移2位；在PC+4基础上偏移
+        NEXT_STATE.PC = NEXT_STATE.PC + (offset << 2);
 }
 
 void addi(uint8_t rs, uint8_t rt, int16_t imm){
@@ -266,19 +266,19 @@ void sltiu(uint8_t rs, uint8_t rt, uint16_t imm){
 void andi(uint8_t rs, uint8_t rt, int16_t imm){
     // 逻辑与，高位填充0
     if(rt != 0)  // 目标寄存器不能为0
-        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & (uint32_t)imm;
+        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & (imm & 0x0000FFFF);
 }
 
 void ori(uint8_t rs, uint8_t rt, int16_t imm){
     // 逻辑或，高位填充0
     if(rt != 0)  // 目标寄存器不能为0
-        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] | (uint32_t)imm;
+        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] | (imm & 0x0000FFFF);
 }
 
 void xori(uint8_t rs, uint8_t rt, int16_t imm){
     // 逻辑异或，高位填充0
     if(rt != 0)  // 目标寄存器不能为0
-        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] ^ (uint32_t)imm;
+        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] ^ (imm & 0x0000FFFF);
 }
 
 void lui(uint8_t rt, int16_t imm){
@@ -350,13 +350,13 @@ void sw(uint8_t base, uint8_t rt, int16_t offset){
 
 void j(uint32_t addr){
     // 无条件跳转，PC的高四位不变，低28位由addr给出
-    NEXT_STATE.PC = (CURRENT_STATE.PC & 0xF0000000) | (addr << 2) - 4;  // 在process_instruction()中会+4
+    NEXT_STATE.PC = (NEXT_STATE.PC & 0xF0000000) | (addr << 2);
 }
 
 void jal(uint32_t addr){
     // 无条件跳转，PC的高四位不变，低28位由addr给出，同时将PC+4写入$31
-    NEXT_STATE.PC = (CURRENT_STATE.PC & 0xF0000000) | (addr << 2) - 4;  // 在process_instruction()中会+4
-    NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+    NEXT_STATE.PC = (NEXT_STATE.PC & 0xF0000000) | (addr << 2);
+    NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4; // TODO: check
 }
 
 // 指令分发处理

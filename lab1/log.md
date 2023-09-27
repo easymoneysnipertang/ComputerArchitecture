@@ -109,9 +109,10 @@ l_4:
 6. ori: $0=0
 7. addiu: $6=0x1337
 8. beq: $zero==0，跳转到l_4，pc=0x00400048
-9. addiu: $7=0xd00d  0x24080347
+9. addiu: $7=0xd00d  -> assemble成了lui ori addu
+10. syscall: 退出程序
 
-有问题！
+有问题！check√
 
 ## memtest
 ```
@@ -242,4 +243,4 @@ main:
 5. addiu: $8=0xefbe
 6. sb: 0x10000000=0xfe
 
-有问题！
+汇编后指令变了，对照汇编执行生成的指令没问题  
