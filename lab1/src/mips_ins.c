@@ -87,27 +87,27 @@ void mtlo(uint8_t rs){
 void mult(uint8_t rs, uint8_t rt){
     // 有符号乘法，结果保存在HI和LO寄存器中
     int64_t result = (int64_t)CURRENT_STATE.REGS[rs] * (int64_t)CURRENT_STATE.REGS[rt];
-    CURRENT_STATE.HI = (uint32_t)(result >> 32);
-    CURRENT_STATE.LO = (uint32_t)result;
+    NEXT_STATE.HI = result >> 32;
+    NEXT_STATE.LO = result & 0xFFFFFFFF;
 }
 
 void multu(uint8_t rs, uint8_t rt){
     // 无符号乘法，结果保存在HI和LO寄存器中
     uint64_t result = (uint64_t)CURRENT_STATE.REGS[rs] * (uint64_t)CURRENT_STATE.REGS[rt];
-    CURRENT_STATE.HI = (uint32_t)(result >> 32);
-    CURRENT_STATE.LO = (uint32_t)result;
+    NEXT_STATE.HI = result >> 32;
+    NEXT_STATE.LO = result & 0xFFFFFFFF;
 }
 
 void div(uint8_t rs, uint8_t rt){
     // 有符号除法，结果保存在HI和LO寄存器中
-    CURRENT_STATE.LO = (int32_t)CURRENT_STATE.REGS[rs] / (int32_t)CURRENT_STATE.REGS[rt];
-    CURRENT_STATE.HI = (int32_t)CURRENT_STATE.REGS[rs] % (int32_t)CURRENT_STATE.REGS[rt];
+    NEXT_STATE.LO = (int32_t)CURRENT_STATE.REGS[rs] / (int32_t)CURRENT_STATE.REGS[rt];
+    NEXT_STATE.HI = (int32_t)CURRENT_STATE.REGS[rs] % (int32_t)CURRENT_STATE.REGS[rt];
 }
 
 void divu(uint8_t rs, uint8_t rt){
     // 无符号除法，结果保存在HI和LO寄存器中
-    CURRENT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
-    CURRENT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt];
+    NEXT_STATE.LO = (uint32_t)CURRENT_STATE.REGS[rs] / (uint32_t)CURRENT_STATE.REGS[rt];
+    NEXT_STATE.HI = (uint32_t)CURRENT_STATE.REGS[rs] % (uint32_t)CURRENT_STATE.REGS[rt];
 }
 
 void add(uint8_t rs, uint8_t rt, uint8_t rd){
@@ -122,7 +122,9 @@ void add(uint8_t rs, uint8_t rt, uint8_t rd){
 void addu(uint8_t rs, uint8_t rt, uint8_t rd){
     // 无符号加法，溢出时不报错
     if(rd != 0)  // 目标寄存器不能为0
-        NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+        NEXT_STATE.REGS[rd] = (int32_t)CURRENT_STATE.REGS[rs] + (int32_t)CURRENT_STATE.REGS[rt];
+    // The only difference between this instruction and the ADD instruction is
+    // that ADDU never causes an overflow exception
 }
 
 void sub(uint8_t rs, uint8_t rt, uint8_t rd){
@@ -137,7 +139,7 @@ void sub(uint8_t rs, uint8_t rt, uint8_t rd){
 void subu(uint8_t rs, uint8_t rt, uint8_t rd){
     // 无符号减法，溢出时不报错
     if(rd != 0)  // 目标寄存器不能为0
-        NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
+        NEXT_STATE.REGS[rd] = (int32_t)CURRENT_STATE.REGS[rs] - (int32_t)CURRENT_STATE.REGS[rt];
 }
 
 void and(uint8_t rs, uint8_t rt, uint8_t rd){
@@ -238,8 +240,10 @@ void bgtz(uint8_t rs, int16_t offset){
 
 void addi(uint8_t rs, uint8_t rt, int16_t imm){
     // 有符号加法，溢出时报错
-    if(rt != 0)  // 目标寄存器不能为0
-        NEXT_STATE.REGS[rt] = (int32_t)CURRENT_STATE.REGS[rs] + imm;
+    if(rt != 0){  // 目标寄存器不能为0
+        int32_t imm32 = imm > 0x7FFF? imm | 0xFFFF0000: imm;  // 符号拓展老不行
+        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + imm32;
+    }
     if(((int32_t)CURRENT_STATE.REGS[rs] > 0 && imm > 0 && (int32_t)NEXT_STATE.REGS[rt] < 0) ||
          ((int32_t)CURRENT_STATE.REGS[rs] < 0 && imm < 0 && (int32_t)NEXT_STATE.REGS[rt] > 0))
           printf("Error: signed integer overflow in addi\n");
@@ -247,20 +251,22 @@ void addi(uint8_t rs, uint8_t rt, int16_t imm){
 
 void addiu(uint8_t rs, uint8_t rt, uint16_t imm){
     // 无符号加法，溢出时不报错
-    if(rt != 0)  // 目标寄存器不能为0
-        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + imm;
+    if(rt != 0){  // 目标寄存器不能为0
+        int32_t imm32 = imm > 0x7FFF? imm | 0xFFFF0000: imm;
+        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + imm32;
+    }
 }
 
 void slti(uint8_t rs, uint8_t rt, int16_t imm){
     // 有符号比较，rs<imm时rt=1，否则rt=0
     if(rt != 0)  // 目标寄存器不能为0
-        NEXT_STATE.REGS[rt] = (int32_t)CURRENT_STATE.REGS[rs] < imm;
+        NEXT_STATE.REGS[rt] = (int32_t)CURRENT_STATE.REGS[rs] < (int32_t)imm;
 }
 
 void sltiu(uint8_t rs, uint8_t rt, uint16_t imm){
     // 无符号比较，rs<imm时rt=1，否则rt=0
     if(rt != 0)  // 目标寄存器不能为0
-        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < imm;
+        NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] < (int32_t)imm;
 }
 
 void andi(uint8_t rs, uint8_t rt, int16_t imm){
@@ -291,7 +297,9 @@ void lb(uint8_t base, uint8_t rt, int16_t offset){
     // 从rs+offset处读取一个字节，符号扩展后写入rt
     if(rt != 0){ // 目标寄存器不能为0
         uint32_t addr = (int32_t)CURRENT_STATE.REGS[base] + offset;
-        NEXT_STATE.REGS[rt] = (int32_t) mem_read_32(addr) & 0xFF;
+        uint32_t temp = mem_read_32(addr) & 0xFF;
+        // int_32t转不过来，符号拓展很麻烦
+        NEXT_STATE.REGS[rt] = temp > 0x7F? temp | 0xFFFFFF00: temp;
     }
 }
 
@@ -299,7 +307,9 @@ void lh(uint8_t base, uint8_t rt, int16_t offset){
     // 从rs+offset处读取两个字节，符号扩展后写入rt
     if(rt != 0){ // 目标寄存器不能为0
         uint32_t addr = (int32_t)CURRENT_STATE.REGS[base] + offset;
-        NEXT_STATE.REGS[rt] = (int32_t) mem_read_32(addr) & 0xFFFF;
+        uint32_t temp = mem_read_32(addr) & 0xFFFF;
+        // int_32t转不过来
+        NEXT_STATE.REGS[rt] = temp > 0x7FFF? temp | 0xFFFF0000: temp;
     }
 }
 
@@ -313,7 +323,7 @@ void lbu(uint8_t base, uint8_t rt, int16_t offset){
     // 从rs+offset处读取一个字节，零扩展后写入rt
     if(rt != 0){ // 目标寄存器不能为0
         uint32_t addr = (int32_t)CURRENT_STATE.REGS[base] + offset;
-        NEXT_STATE.REGS[rt] = (uint32_t) mem_read_32(addr) & 0xFF;
+        NEXT_STATE.REGS[rt] = (uint32_t) (mem_read_32(addr) & 0x000000FF);
     }
 }
 
@@ -321,7 +331,7 @@ void lhu(uint8_t base, uint8_t rt, int16_t offset){
     // 从rs+offset处读取两个字节，零扩展后写入rt
     if(rt != 0){ // 目标寄存器不能为0
         uint32_t addr = (int32_t)CURRENT_STATE.REGS[base] + offset;
-        NEXT_STATE.REGS[rt] = (uint32_t) mem_read_32(addr) & 0xFFFF;
+        NEXT_STATE.REGS[rt] = (uint32_t) (mem_read_32(addr) & 0x0000FFFF);
     }
 }
 

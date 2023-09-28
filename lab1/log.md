@@ -2,6 +2,18 @@
 MIPS寄存器对照：  
 ![mips_regs](mips_regs.png)
 
+## 对照MARS运行结果
+![mars](mars_run.png)
+
+1. addiu.x check√
+2. arithtest.x check√
+3. brtest0.x check√
+4. brtest1.x problem! -> 符号拓展的问题 check√
+5. brtest2.x check√
+6. memtest0.x check√
+7. memtest1.x 存的没问题，读的有问题！ -> 符号拓展的问题 check√
+
+
 
 ## addiu
 ```
