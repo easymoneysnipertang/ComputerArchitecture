@@ -47,6 +47,7 @@ void srav(uint8_t rs, uint8_t rt, uint8_t rd){
     // 算数右移，移位数由rs给出，&0x1F确保移位数不超过31，高位填充符号位
     if(rt != 0)  // 目标寄存器不能为0
         NEXT_STATE.REGS[rd] = (int32_t)CURRENT_STATE.REGS[rt] >> (CURRENT_STATE.REGS[rs] & 0x1F);
+    // TODO：check
 }
 
 void jr(uint8_t rs){
@@ -70,7 +71,7 @@ void mfhi(uint8_t rd){
 
 void mthi(uint8_t rs){
     // 将rs的值写入HI寄存器
-    CURRENT_STATE.HI = CURRENT_STATE.REGS[rs];
+    NEXT_STATE.HI = CURRENT_STATE.REGS[rs];
 }
 
 void mflo(uint8_t rd){
@@ -81,7 +82,7 @@ void mflo(uint8_t rd){
 
 void mtlo(uint8_t rs){
     // 将rs的值写入LO寄存器
-    CURRENT_STATE.LO = CURRENT_STATE.REGS[rs];
+    NEXT_STATE.LO = CURRENT_STATE.REGS[rs];
 }
 
 void mult(uint8_t rs, uint8_t rt){
