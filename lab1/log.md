@@ -200,7 +200,7 @@ main:
     
 验证无误
 
-## ## memtest1
+## memtest1
 ```
 main:
         #;;  Set a base address
