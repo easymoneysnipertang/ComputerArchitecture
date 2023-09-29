@@ -107,6 +107,21 @@ J型指令仅有两条：**j、jal**，其opcode分别为000010、000011。
 即使在j、jal指令的处理函数中，对PC减四，仍然存在问题：因为指令是将`CURRENT_STATE.PC`与目标地址进行拼接，极端情况仍然有问题。  
 当然如上问题也可以通过继续打补丁修改，但这样的实现**不够优雅**。结合了书上CPU结构图后，将PC加四的操作放在取指操作后，这样就不会出现上述问题。
 
+```C
+void process_instruction()
+{
+    /* execute one instruction here. You should use CURRENT_STATE and modify
+     * values in NEXT_STATE. You can call mem_read_32() and mem_write_32() to
+     * access memory. */
+    // 获取当前指令
+    uint32_t instruction = mem_read_32(CURRENT_STATE.PC);
+    // 取指后就更新PC
+    NEXT_STATE.PC += 4;
+    // 解析指令
+    ...
+}
+```
+
 
 ## 实验验证
 实验验证环节，由于所给的asm2hex脚本缺少spim相关包，使用Mars将汇编代码转换为机器码。  
